@@ -17,7 +17,7 @@ def drawdown(return_series: pd.Series):
     
 	return pd.DataFrame({"Wealth": wealth_index,
 						"Previous Peak":previous_peaks,
-						"Drawdown":drawdowns)
+						"Drawdown":drawdowns})
 
 
 def semideviation(r):
