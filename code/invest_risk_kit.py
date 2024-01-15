@@ -9,7 +9,7 @@ def drawdown(return_series: pd.Series):
 		the percentage drawdown
 	"""
     # how well can $1000 initial amt perform with the returns series cumulatively over time
-	wealth_index = 1000*(1+return_series.cumprod()
+	wealth_index = 1000*(1+return_series).cumprod()
     # for each period record the highest recent peak in wealth accumulation
 	previous_peaks = wealth_index.cummax()
     # percentage of wealth lost, recorded over time/row-wise
@@ -26,7 +26,7 @@ def semideviation(r):
         r must be a Series or a DataFrame
     """
     is_negative = r < 0
-    retuen r[is_negative].std(ddof=0)
+    return r[is_negative].std(ddof=0)
     
 
 def skewness(r):
