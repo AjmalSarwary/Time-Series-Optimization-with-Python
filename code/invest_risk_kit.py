@@ -43,7 +43,7 @@ def skewness(r):
     """
     demeaned_r = r - r.mean()
     # use the population std, so set dof=0
-    sigma_r = r.str(ddof=0)
+    sigma_r = r.std(ddof=0)
     exp = (demeaned_r**3).mean()
     
     return exp/sigma_r**3
