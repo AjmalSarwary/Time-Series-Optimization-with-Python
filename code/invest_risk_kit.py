@@ -252,7 +252,51 @@ def optimal_weights(n_points, er, cov):
   weights = [minimize_vol(target_return, er, cov) for target_return in target_rs]
   return weights
 
-def plot_ef(n_points, er, cov):
+def msr(riskfree_rate,er, cov):
+    """
+    Riskfree rate + ER + COV -> w
+    Return the weights of the portfolio that gives the maximum sharpe ratio given the riskfree rate and expected returns and a covariance matrix
+ 
+    """
+    # number of portfolios
+    n = er.shape[0]
+    # initial allocation across portfolios
+    init_guess = np.repeat(1/n, n)
+    #constains:
+    # n tuples trick to make n-tuples for the bounds of the allocations
+    # bounds for each weight must be 0=< bound =<1
+    bounds = ((0.0, 1.0),)*n
+
+   
+    # weights must sum to 1, i.e. 'sum(weights) -1 = 0
+    weights_sum_to_1 = {
+        'type': 'eq',
+        'fun': lambda weights: np.sum(weights) - 1
+    }
+    
+    def neg_sharpe_ratio(weights, riskfree_rate, er, cov):
+      """
+      Returns the negative of the sharpe ratio
+      """
+      r = portfolio_return(weights, er)
+      vol = portfolio_vol(weights, cov)
+      return -(r - riskfree_rate)/vol
+
+   
+    # objective function: quadratic optimizer SLSQP
+    results = minimize(neg_sharpe_ratio, 
+                       init_guess, 
+                       args=(riskfree_rate,er,cov,), 
+                       method="SLSQP",
+                       options={'disp':False},
+              constraints=(weights_sum_to_1),
+                           bounds=bounds
+    )
+    # return only weights
+    return results.x
+
+
+def plot_ef(n_points, er, cov, show_cml=True, style='.-', riskfree_rate=0):
   """
   Plots the multi-asset efficient frontier
   """
@@ -263,4 +307,15 @@ def plot_ef(n_points, er, cov):
       "Returns": rets,
       "Volatility": vols
   })
-  return ef.plot.line(x="Volatility", y="Returns", style='.-')
+  ax = ef.plot.line(x="Volatility", y="Returns", style=style)
+  if show_cml:
+        ax.set_xlim(left=0)
+    rf = 0.1
+    w_msr = msr(rf, er, cov)
+    r_msr = portfolio_return(w_msr, er)
+    vol_msr = portfolio_vol(w_msr, cov)
+    # Add CML
+    cml_x = [0, vol_msr]
+    cml_y = [riskfree_rate, r_msr]
+    ax.plot(cml_x, cml_y, color= "chartreuse", marker="o", linestyle="dashed", markersize=12, linewidth=2)
+    return ax
