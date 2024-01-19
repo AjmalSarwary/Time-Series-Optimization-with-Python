@@ -163,4 +163,72 @@ def plot_ef2(n_points, er, cov, style):
     vols = [portfolio_vol(w, cov) for w in weights]
     ef = pd.DataFrame({"Returns": rets, "Vols": vols})
     return ef.plot.line(x="Vols", y="Returns", style=style)
+  
+from scipy.optimize import minimize  
+def minimize_vol(target_return, er, cov):
+    """
+    target_ret -> w
+    takes in a desired target return, expeced returns Series, and a covariance matrix
+    returns the optimal weights for the target return with lowest possible volatility
+    """
+    # number of portfolios
+    n = er.shape[0]
+    # initial allocation across portfolios
+    init_guess = np.repeat(1/n, n)
+    #constains:
+    # n tuples trick to make n-tuples for the bounds of the allocations
+    # bounds for each weight must be 0=< bound =<1
+    bounds = ((0.0, 1.0),)*n
+    # define target return as an equality constraint
+    # target return - rk.portfolio_return() = 0
+    return_is_target = {
+        'type': 'eq',
+        'args': (er,),
+        'fun': lambda weights, er: target_return - portfolio_return(weights,er)
+    }
+    # weights must sum to 1, i.e. 'sum(weights) -1 = 0
+    weights_sum_to_1 = {
+        'type': 'eq',
+        'fun': lambda weights: np.sum(weights) - 1
+    }
+   
+    # objective function: quadratic optimizer SLSQP
+    results = minimize(portfolio_vol, 
+                       init_guess, 
+                       args=(cov,), 
+                       method="SLSQP",
+                       options={'disp':False},
+              constraints=(return_is_target, 
+                           weights_sum_to_1),
+                           bounds=bounds
+    )
+    # return only weights
+    return results.x
     
+    
+
+def get_ffme_returns():
+  """
+  Load the Fama-French Dataset for the retruns of the Top and Bottom Deciles by MarketCap
+  ffme_returns: fama-french market equity based returns
+  """
+  file_path = '/content/invest_ml/data/Portfolios_Formed_on_ME_monthly_EW.csv'
+  rets = pd.read_csv(file_path, header=0, index_col=0, na_values=99.99)
+  rets = rets[['Lo 10','Hi 10']]
+  rets.columns = ['SmallCap', 'LargeCap']
+  rets = rets/100
+  rets.index = pd.to_datetime(rets.index, format="%Y%m").to_period('M')
+  return rets
+
+def get_hfi_returns():
+  """
+  Load and format the EDHEC Hedge Fund Index Returns
+  Dataset contains various kinds of Hedge Fund Strategies (Hedge Funds Indices) produced by EDHEC from 1997 onward
+  """
+  file_path = '/content/invest_ml/data/edhec-hedgefundindices.csv'
+  hfi = pd.read_csv(file_path, header=0, index_col=0, parse_dates=True)
+  hfi = hfi/100
+  hfi.index = hfi.index.to_period('M')
+  return hfi
+  
+
