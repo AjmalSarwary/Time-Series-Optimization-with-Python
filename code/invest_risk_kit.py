@@ -232,3 +232,13 @@ def get_hfi_returns():
   return hfi
   
 
+def get_ind_returns():
+    """
+    Load and format ind30_m_vw_rets represents monthly returns of 30 different industry portfolios fom 1926 onward
+    """
+    file_path = '/content/invest_ml/data/ind30_m_vw_rets.csv'
+    ind = pd.read_csv(file_path, header=0, index_col=0, parse_dates=True)
+    ind = ind/100
+    ind.index = pd.to_datetime(ind.index, format='%Y%m').to_period('M')
+    ind.columns = ind.columns.str.strip()
+    return ind
