@@ -242,3 +242,25 @@ def get_ind_returns():
     ind.index = pd.to_datetime(ind.index, format='%Y%m').to_period('M')
     ind.columns = ind.columns.str.strip()
     return ind
+
+
+def optimal_weights(n_points, er, cov):
+  """
+  -> list of weights to run the optimizer to minimize the vol
+  """
+  target_rs = np.linspace(er.min(), er.max(), n_points)
+  weights = [minimize_vol(target_return, er, cov) for target_return in target_rs]
+  return weights
+
+def plot_ef(n_points, er, cov):
+  """
+  Plots the multi-asset efficient frontier
+  """
+  weights = optimal_weights(n_points, er, cov)
+  rets = [portfolio_return(w,er) for w in weights]
+  vols = [portfolio_vol(w,cov) for w in weights]
+  ef = pd.DataFrame({
+      "Returns": rets,
+      "Volatility": vols
+  })
+  return ef.plot.line(x="Volatility", y="Returns", style='.-')
