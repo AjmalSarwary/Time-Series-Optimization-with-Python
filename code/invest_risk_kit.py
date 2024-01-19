@@ -311,7 +311,7 @@ def plot_ef(n_points, er, cov, show_cml=True, style='.-', riskfree_rate=0):
   if show_cml:
         ax.set_xlim(left=0)
     rf = 0.1
-    w_msr = msr(rf, er, cov)
+    w_msr = msr(riskfree_rate, er, cov)
     r_msr = portfolio_return(w_msr, er)
     vol_msr = portfolio_vol(w_msr, cov)
     # Add CML
