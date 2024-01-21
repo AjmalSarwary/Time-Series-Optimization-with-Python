@@ -1,5 +1,34 @@
+"""
+This script is a comprehensive suite of custom functions for portfolio optimization, financial risk, and market analysis. Here is an overview of the functionality each function provides:
+
+- `drawdown`: Calculates the drawdowns, representing declines from a historical peak in a wealth index.
+- `semideviation`: Measures the downside risk of returns, focusing on negative variations.
+- `skewness`: Assesses the asymmetry of the return distribution of an asset.
+- `kurtosis`: Evaluates the 'tailedness' of the return distribution and identifies fat-tailed or thin-tailed distributions.
+- `var_historic`: Computes the historical Value at Risk at a specified confidence level, indicating the maximum expected loss.
+- `var_gaussian`: Estimates the Gaussian Value at Risk, with an option for the Cornish-Fisher adjustment.
+- `cvar_historic`: Calculates the Conditional Value at Risk, the average loss exceeding the VaR level.
+- `annualize_rets`: Converts shorter-period returns into annual returns.
+- `annualize_vol`: Converts shorter-period volatility into annualized volatility.
+- `sharpe_ratio`: Computes the annualized Sharpe ratio of a set of returns, providing a risk-adjusted measure of return.
+- `portfolio_return`: Calculates the overall return of a portfolio based on individual asset returns and weights.
+- `portfolio_vol`: Determines the overall volatility of a portfolio given its asset weights and covariance matrix.
+- `plot_ef2`: Plots the 2-asset efficient frontier, visualizing the trade-off between risk and return.
+- `minimize_vol`: Finds the portfolio weights that minimize volatility for a given target return.
+- `get_ffme_returns`: Loads the Fama-French Dataset for analyzing market equity returns segmented by size deciles.
+- `get_hfi_returns`: Retrieves the EDHEC Hedge Fund Index Returns, offering insights into different hedge fund strategies.
+- `get_ind_returns`: Provides monthly returns of various industry portfolios, facilitating an industry-wide analysis.
+- `optimal_weights`: Calculates the weights that minimize the portfolio's volatility for a range of expected returns.
+- `msr`: Identifies the Maximum Sharpe Ratio Portfolio given the risk-free rate and the expected returns and covariance of the assets.
+- `neg_sharpe_ratio`: Computes the negative Sharpe ratio, often used as an objective function for optimization.
+- `plot_ef`: Plots the efficient frontier for a portfolio of multiple assets.
+"""
+
+
 import pandas as pd
 import numpy as np
+from scipy.stats import norm
+from scipy.optimize import minimize 
 
 def drawdown(return_series: pd.Series):
     """
@@ -112,7 +141,7 @@ def var_historic(r, level=5):
         raise TypeError("Expected r to be Series or DataFrame")
 
         
-from scipy.stats import norm
+
 def var_gaussian(r, level=5, modified=False):
     """
     Calculates the Gaussian Value at Risk (VaR) using the normal distribution or the modified VaR using the Cornish-Fisher expansion.
@@ -292,7 +321,7 @@ def plot_ef2(n_points, er, cov, style):
     return ef.plot.line(x="Volatility", y="Returns", style=style)
 
   
-from scipy.optimize import minimize  
+ 
 def minimize_vol(target_return, er, cov):
     """
     Finds the optimal portfolio weights that achieve a target return with the lowest possible volatility.
@@ -457,7 +486,7 @@ def msr(riskfree_rate, er, cov):
 
 
 
-def plot_ef(n_points, er, cov, show_cml=True, style='.-', riskfree_rate=0):
+def plot_ef(n_points, er, cov, show_cml=True, style='.-', riskfree_rate=0, show_ew=False):
     """
     Plots the efficient frontier for a multi-asset portfolio and optionally the Capital Market Line (CML).
 
@@ -482,7 +511,14 @@ def plot_ef(n_points, er, cov, show_cml=True, style='.-', riskfree_rate=0):
     # Create a DataFrame and plot the efficient frontier.
     ef = pd.DataFrame({"Returns": rets, "Volatility": vols})
     ax = ef.plot.line(x="Volatility", y="Returns", style=style)
-
+    
+    if show_ew:
+        n = er.shape[0]
+        w_ew = np.repeat(1/n, n)
+        r_ew = portfolio_return(w_ew, er)
+        vol_ew = portfolio_vol(w_ew, cov)
+        # display EW
+        ax.plot([vol_ew], [r_ew], color='goldenred', marker='o', markersize=12)
     # Optionally plot the Capital Market Line.
     if show_cml:
         ax.set_xlim(left=0)
