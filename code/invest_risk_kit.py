@@ -21,7 +21,8 @@ This script is a comprehensive suite of custom functions for portfolio optimizat
 - `optimal_weights`: Calculates the weights that minimize the portfolio's volatility for a range of expected returns.
 - `msr`: Identifies the Maximum Sharpe Ratio Portfolio given the risk-free rate and the expected returns and covariance of the assets.
 - `neg_sharpe_ratio`: Computes the negative Sharpe ratio, often used as an objective function for optimization.
-- `plot_ef`: Plots the efficient frontier for a portfolio of multiple assets.
+- `gmv`: Calculates the weights of the Global Minimum Volatility (GMV) portfolio based on the covariance matrix. The GMV portfolio aims to achieve the lowest possible volatility, focusing solely on risk minimization without considering expected returns.
+- `plot_ef`: Plots the efficient frontier for a multi-asset portfolio, illustrating the trade-off between risk and return. The function also optionally shows the Capital Market Line (CML), Equal Weight (EW) portfolio, and Global Minimum Volatility (GMV) portfolio, providing a comprehensive view of different investment strategies and their risk-return profiles.
 """
 
 
@@ -485,6 +486,26 @@ def msr(riskfree_rate, er, cov):
     return results.x
 
 
+def gmv(cov):
+    """
+    Returns the weights of the Global Minimum Volatility (GMV) portfolio based on the covariance matrix.
+
+    The GMV portfolio is the portfolio with the lowest possible volatility based on historical returns. 
+    It's a cornerstone concept in modern portfolio theory, focusing solely on minimizing risk, 
+    regardless of expected returns.
+
+    Parameters:
+    - cov (pd.DataFrame): Covariance matrix of the asset returns.
+
+    Returns:
+    - numpy.ndarray: Weights of the assets in the GMV portfolio.
+    """
+    n = cov.shape[0]  # Number of assets in the covariance matrix.
+    # The GMV portfolio is found by using the mean-variance optimization to minimize volatility.
+    # Here, we use the mean return of 0 for all assets, implying we're not considering returns in this optimization.
+    # This function call effectively finds the portfolio on the efficient frontier with the lowest volatility.
+    return msr(0, np.repeat(1, n), cov)
+
 
 def plot_ef(n_points, er, cov, show_cml=True, style='.-', riskfree_rate=0, show_ew=False):
     """
@@ -512,19 +533,24 @@ def plot_ef(n_points, er, cov, show_cml=True, style='.-', riskfree_rate=0, show_
     ef = pd.DataFrame({"Returns": rets, "Volatility": vols})
     ax = ef.plot.line(x="Volatility", y="Returns", style=style)
     
-    if show_ew:
+ if show_ew:
+        # Calculate the Equal Weight portfolio.
+        # It assigns an equal weight to all assets, irrespective of their individual risks or returns.
         n = er.shape[0]
         w_ew = np.repeat(1/n, n)
         r_ew = portfolio_return(w_ew, er)
         vol_ew = portfolio_vol(w_ew, cov)
-        # display EW
+        # Display the Equal Weight portfolio on the plot as a single point.
         ax.plot([vol_ew], [r_ew], color='sandybrown', marker='o', markersize=12)
-    # Optionally plot the Capital Market Line.
-    if show_cml:
-        ax.set_xlim(left=0)
-        w_msr = msr(riskfree_rate, er, cov)
-        r_msr = portfolio_return(w_msr, er)
-        vol_msr = portfolio_vol(w_msr, cov)
+
+    if show_gmv:
+        # Calculate the Global Minimum Volatility portfolio weights.
+        # This portfolio aims to achieve the lowest possible risk (volatility).
+        w_gmv = gmv(cov)
+        r_gmv = portfolio_return(w_gmv,er)
+        vol_gmv = portfolio_vol(w_gmv, cov)
+        # Display the GMV portfolio on the plot as a single point.
+        ax.plot([vol_gmv], [r_gmv], color='midnightblue', marker='o', markersize=12)
 
         # Plot the CML.
         cml_x = [0, vol_msr]
