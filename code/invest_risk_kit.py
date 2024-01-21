@@ -518,7 +518,7 @@ def plot_ef(n_points, er, cov, show_cml=True, style='.-', riskfree_rate=0, show_
         r_ew = portfolio_return(w_ew, er)
         vol_ew = portfolio_vol(w_ew, cov)
         # display EW
-        ax.plot([vol_ew], [r_ew], color='sandybrowan', marker='o', markersize=12)
+        ax.plot([vol_ew], [r_ew], color='sandybrown', marker='o', markersize=12)
     # Optionally plot the Capital Market Line.
     if show_cml:
         ax.set_xlim(left=0)
