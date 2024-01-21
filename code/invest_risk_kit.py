@@ -533,7 +533,7 @@ def plot_ef(n_points, er, cov, show_cml=True, style='.-', riskfree_rate=0, show_
     ef = pd.DataFrame({"Returns": rets, "Volatility": vols})
     ax = ef.plot.line(x="Volatility", y="Returns", style=style)
     
- if show_ew:
+    if show_ew:
         # Calculate the Equal Weight portfolio.
         # It assigns an equal weight to all assets, irrespective of their individual risks or returns.
         n = er.shape[0]
