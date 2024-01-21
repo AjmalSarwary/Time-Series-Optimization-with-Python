@@ -507,7 +507,7 @@ def gmv(cov):
     return msr(0, np.repeat(1, n), cov)
 
 
-def plot_ef(n_points, er, cov, show_cml=True, style='.-', riskfree_rate=0, show_ew=False):
+def plot_ef(n_points, er, cov, show_cml=True, style='.-', riskfree_rate=0, show_ew=False, show_gmv=False):
     """
     Plots the efficient frontier for a multi-asset portfolio and optionally the Capital Market Line (CML).
 
