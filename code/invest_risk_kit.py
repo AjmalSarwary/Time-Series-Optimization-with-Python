@@ -419,9 +419,9 @@ def get_ind_returns():
 
 def get_ind_size():
     """
-    
+    Returns sizes of the industry (market cap)
     """
-    file_path = '/content/ind30_m_size.csv'
+    file_path = '/content/invest_ml/data/ind30_m_size.csv'
     ind = pd.read_csv(file_path, header=0, index_col=0, parse_dates=True)
     ind.index = pd.to_datetime(ind.index, format='%Y%m').to_period('M')
     ind.columns = ind.columns.str.strip()
@@ -429,9 +429,9 @@ def get_ind_size():
 
 def get_ind_nfirms():
     """
-   
+    Returns number of firms in the industry
     """
-    file_path = '/content/ind30_m_nfirms.csv'
+    file_path = '/content/invest_ml/data/ind30_m_nfirms.csv'
     ind = pd.read_csv(file_path, header=0, index_col=0, parse_dates=True)
     ind.index = pd.to_datetime(ind.index, format='%Y%m').to_period('M')
     ind.columns = ind.columns.str.strip()
