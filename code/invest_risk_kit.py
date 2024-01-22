@@ -368,6 +368,7 @@ def minimize_vol(target_return, er, cov):
     
     # Return the optimized weights.
     return results.x
+    
 
     
     
@@ -401,9 +402,6 @@ def get_hfi_returns():
     hfi.index = hfi.index.to_period('M')
     return hfi
 
-
-  
-
 def get_ind_returns():
     """
     Loads and formats the monthly returns of 30 different industry portfolios from 1926 onward.
@@ -417,8 +415,27 @@ def get_ind_returns():
     ind.index = pd.to_datetime(ind.index, format='%Y%m').to_period('M')
     ind.columns = ind.columns.str.strip()
     return ind
+  
 
+def get_ind_size():
+    """
+    
+    """
+    file_path = '/content/ind30_m_size.csv'
+    ind = pd.read_csv(file_path, header=0, index_col=0, parse_dates=True)
+    ind.index = pd.to_datetime(ind.index, format='%Y%m').to_period('M')
+    ind.columns = ind.columns.str.strip()
+    return ind
 
+def get_ind_nfirms():
+    """
+   
+    """
+    file_path = '/content/ind30_m_nfirms.csv'
+    ind = pd.read_csv(file_path, header=0, index_col=0, parse_dates=True)
+    ind.index = pd.to_datetime(ind.index, format='%Y%m').to_period('M')
+    ind.columns = ind.columns.str.strip()
+    return ind
 
 def optimal_weights(n_points, er, cov):
     """
