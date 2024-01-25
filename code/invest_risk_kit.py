@@ -582,6 +582,37 @@ def plot_ef(n_points, er, cov, show_cml=True, style='.-', riskfree_rate=0, show_
         
     return ax        
 
+def get_total_market_return():
+    '''
+    Calculate the total market return based on individual industry returns, the number of firms, and market capitalization sizes.
+    
+    Returns:
+    - A pandas Series representing the weighted total market return over time.
+    '''
+
+    # Retrieve the number of firms for each industry
+    ind_nfirms = get_ind_nfirms()
+    
+    # Retrieve the size (market capitalization) for each industry
+    ind_size = get_ind_size()
+    
+    # Calculate the market capitalization for each industry by multiplying the number of firms by their size
+    ind_mktcap = ind_nfirms * ind_size
+    
+    # Calculate the combined market capitalization across all industries for each time period
+    joint_mktcap = ind_mktcap.sum(axis='columns')
+    
+    # Calculate the capitalization weight for each industry by dividing each industry's market cap by the total market cap
+    ind_capweight = ind_mktcap.divide(joint_mktcap, axis='rows')
+    
+    # Calculate the total market return by summing the product of industry returns and their capitalization weights
+    # Note: 'ind_return' seems to be a global variable or previously defined data that holds the industry returns
+    total_market_return = (ind_capweight * ind_return).sum(axis='columns')
+    
+    # Return the total market return as a pandas Series
+    return total_market_return
+
+
 def run_cppi(risky_r, safe_r=None, m=3, start=1000, floor=0.8, riskfree_rate=0.03, drawdown=None):
     """
     Run a backtest of the CPPI strategy, given a set of returns for the risky asset.
