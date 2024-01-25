@@ -289,7 +289,6 @@ def portfolio_vol(weights, covmat):
     return (weights.T @ covmat @ weights)**0.5
 
 
-
 def plot_ef2(n_points, er, cov, style):
     """
     Plots the efficient frontier for a portfolio of two assets.
@@ -582,3 +581,111 @@ def plot_ef(n_points, er, cov, show_cml=True, style='.-', riskfree_rate=0, show_
         ax.plot(cml_x, cml_y, color="chartreuse", marker="o", linestyle="dashed", markersize=12, linewidth=2)
         
     return ax        
+
+def run_cppi(risky_r, safe_r=None, m=3, start=1000, floor=0.8, riskfree_rate=0.03, drawdown=None):
+    """
+    Run a backtest of the CPPI strategy, given a set of returns for the risky asset.
+    Returns a dictionary containing: Asset Value History, Risk Budget History, Risky Weight History.
+    
+    Parameters:
+    - risky_r: Returns of the risky asset as a pd.Series or pd.DataFrame.
+    - safe_r: Returns of the safe asset as a pd.DataFrame (optional).
+    - m: Multiplier applied to the cushion (excess over the floor).
+    - start: The starting value of the investment.
+    - floor: The minimum acceptable value of the investment, as a percentage of the start value.
+    - riskfree_rate: The risk-free rate of return, per period.
+    - drawdown: The drawdown adjusts the floor based on the historical peak of the portfolio.
+    
+    Returns:
+    - A dictionary containing the account value, cushion history, and risky weight history.
+    """
+    # Initialize the CPPI parameters
+    dates = risky_r.index
+    n_steps = len(dates)
+    account_value = start
+    floor_value = start * floor
+    peak = start
+
+    # Convert risky_r to a DataFrame if it's a pd.Series
+    if isinstance(risky_r, pd.Series):
+        risky_r = pd.DataFrame(risky_r, columns=["R"])
+    
+    # If safe_r is not provided, create it and set all values to the risk-free rate
+    if safe_r is None:
+        safe_r = pd.DataFrame().reindex_like(risky_r)
+        safe_r.values[:] = riskfree_rate/12
+            
+    # set up some DataFrames for saving intermediate values
+    account_history = pd.DataFrame().reindex_like(risky_r)
+    risky_w_history = pd.DataFrame().reindex_like(risky_r)
+    cushion_history = pd.DataFrame().reindex_like(risky_r)
+
+    for step in range(n_steps):
+
+        if drawdown is not None:
+          peak = np.maximum(peak, account_value)
+          floor_value = peak*(1 - drawdown)
+          
+        # Calculate the cushion as the current account value minus the floor value
+        cushion = (account_value - floor_value) / account_value
+        risky_w = m * cushion  # Apply the multiplier to the cushion
+        risky_w = np.minimum(risky_w, 1)  # The risky weight cannot be more than 100%
+        risky_w = np.maximum(risky_w, 0)  # The risky weight cannot be less than 0%
+        safe_w = 1 - risky_w  # The safe weight is the remainder of the risky weight
+
+        # Calculate the asset allocation
+        risky_alloc = account_value * risky_w
+        safe_alloc = account_value * safe_w
+
+        # Update the account value at the end of this step
+        account_value = risky_alloc * (1 + risky_r.iloc[step]) + safe_alloc * (1 + safe_r.iloc[step])
+
+        # Save the histories for analysis and plotting
+        cushion_history.iloc[step]= cushion
+        risky_w_history.iloc[step] = risky_w
+        account_history.iloc[step]= account_value
+    
+    # Calculate the Risky Wealth only
+    risky_wealth = start * (1+risky_r).cumprod()
+    
+    # Create the backtest result dictionary
+    backtest_result = {
+        "Wealth": account_history,
+        "Risky Wealth": risky_wealth,
+        "Risk Budget": cushion_history,
+        "Risky Allocation": risky_w_history,
+        "m": m,
+        "start": start,
+        "floor": floor,
+        "risky_r": risky_r,
+        "safe_r": safe_r
+    }
+    
+    return backtest_result
+
+
+def summary_stats(r,riskfree_rate=0.03):
+    '''
+    Computes and aggregates critical statistics such as annualized return, volatility, Sharpe ratio, 
+    and maximum drawdown. These metrics are vital for assessing the performance and risk profile of 
+    our investment strategies.
+    Return a DataFrame that contains aggregated summary stats for the returns in the columns or r
+    '''
+    ann_r = r.aggregate(annualize_rets, periods_per_year=12)
+    ann_vol = r.aggregate(annualize_vol, periods_per_year=12)
+    ann_sr = r.aggregate(sharpe_ratio, riskfree_rate=riskfree_rate, periods_per_year=12)
+    dd = r.aggregate(lambda r: drawdown(r).Drawdown.min() )
+    skew = r.aggregate(skewness)
+    kurt = r.aggregate(kurtosis)
+    cf_var5 = r.aggregate(var_gaussian, modified=True)
+    hist_cvar5 = r.aggregate(cvar_historic)
+    return pd.DataFrame({
+        "Annualized Return": ann_r, 
+        "Annualized Vol": ann_vol,
+        "Skewness": skew, 
+        "Kurtosis": kurt,
+        "Cornish-Fisher VaR (5%)": cf_var5,
+        "Historic CVaR (5%)": hist_cvar5,
+        "Sharpe Ratio": ann_sr,
+        "Max Drawdown": dd
+    })
