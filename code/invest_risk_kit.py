@@ -23,6 +23,15 @@ This script is a comprehensive suite of custom functions for portfolio optimizat
 - `neg_sharpe_ratio`: Computes the negative Sharpe ratio, often used as an objective function for optimization.
 - `gmv`: Calculates the weights of the Global Minimum Volatility (GMV) portfolio based on the covariance matrix. The GMV portfolio aims to achieve the lowest possible volatility, focusing solely on risk minimization without considering expected returns.
 - `plot_ef`: Plots the efficient frontier for a multi-asset portfolio, illustrating the trade-off between risk and return. The function also optionally shows the Capital Market Line (CML), Equal Weight (EW) portfolio, and Global Minimum Volatility (GMV) portfolio, providing a comprehensive view of different investment strategies and their risk-return profiles.
+- 'get_total_market_return': Calculates the total market return by aggregating the weighted returns of individual industries. It factors in the capitalization weights based on the size and number of firms in each industry, providing a comprehensive view of the market's performance.
+
+- 'get_ind_nfirms': Retrieves the number of firms across different industries. This function is essential for market structure analysis and enables the computation of industry and market capitalization weights necessary for various financial analyses.
+
+- 'get_ind_size': Obtains the total market capitalization size for each industry. This function is crucial for determining the relative size of industries within the market and is used in the calculation of market-cap weighted returns.
+
+- 'run_cppi': Implements the Constant Proportion Portfolio Insurance (CPPI) strategy, dynamically allocating between a risky asset and a safe asset to enforce a predetermined floor value for the portfolio. It can incorporate a dynamic floor adjustment based on a drawdown constraint, providing a robust mechanism for capital preservation in volatile markets.
+
+- 'summary_stats': Aggregates key statistics such as annualized return, volatility, Sharpe ratio, and maximum drawdown, offering a succinct overview of the risk and return profile of an asset or portfolio. This function is instrumental for performance evaluation and comparative analysis of investment strategies.
 """
 
 
