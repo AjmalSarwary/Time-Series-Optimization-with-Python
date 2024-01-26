@@ -32,6 +32,8 @@ This script is a comprehensive suite of custom functions for portfolio optimizat
 - 'run_cppi': Implements the Constant Proportion Portfolio Insurance (CPPI) strategy, dynamically allocating between a risky asset and a safe asset to enforce a predetermined floor value for the portfolio. It can incorporate a dynamic floor adjustment based on a drawdown constraint, providing a robust mechanism for capital preservation in volatile markets.
 
 - 'summary_stats': Aggregates key statistics such as annualized return, volatility, Sharpe ratio, and maximum drawdown, offering a succinct overview of the risk and return profile of an asset or portfolio. This function is instrumental for performance evaluation and comparative analysis of investment strategies.
+
+- 'gbm': Simulates the evolution of stock prices using a Geometric Brownian Motion (GBM) model over a specified number of years and scenarios. The GBM is a stochastic process that models the logarithmic returns of a stock price as normally distributed.
 """
 
 
@@ -729,3 +731,40 @@ def summary_stats(r,riskfree_rate=0.03):
         "Sharpe Ratio": ann_sr,
         "Max Drawdown": dd
     })
+    
+    
+def gbm(n_years=10, n_scenarios=1000, mu=0.07, sigma=0.15, steps_per_year=12, s_0=100.0):
+    """
+    Simulates the evolution of stock prices using a Geometric Brownian Motion (GBM) model over a specified number of years and scenarios.
+    The GBM is a stochastic process that models the logarithmic returns of a stock price as normally distributed.
+
+    Parameters:
+    - n_years: The number of years over which to simulate the stock price path.
+    - n_scenarios: The number of different paths (scenarios) to simulate.
+    - mu: The annualized expected return of the stock.
+    - sigma: The annualized volatility, or standard deviation, of the stock returns.
+    - steps_per_year: The number of times the stock price is sampled per year.
+    - s_0: The initial stock price.
+
+    Returns:
+    - A DataFrame containing the simulated price paths for the stock.
+    """
+    
+    # Calculate the time step size based on the number of steps per year
+    dt = 1/steps_per_year
+    
+    # Calculate the total number of steps for all years
+    n_steps = int(n_years*steps_per_year)
+    
+    # Simulate the percentage changes in price, which follow a normal distribution
+    # The 'loc' parameter is the mean of the normal distribution, adjusted for the expected return over each time step
+    # The 'scale' parameter is the standard deviation, adjusted for the square root of each time step
+    rets_plus_1 = np.random.normal(loc=(1+mu*dt), scale=(sigma*np.sqrt(dt)), size=(n_steps, n_scenarios))
+    
+    # Calculate the price paths: start with the initial price and cumulatively multiply by the percentage changes
+    prices = s_0*pd.DataFrame(rets_plus_1).cumprod()
+    
+    # Return the DataFrame of simulated prices
+    return prices
+    
+    
