@@ -774,6 +774,27 @@ def gbm(n_years=10, n_scenarios=1000, mu=0.07, sigma=0.15, steps_per_year=12, s_
     return prices
 
 
+import matplotlib.pyplot as plt
+from IPython.display import display, clear_output
+
+def show_gbm(n_scenarios, mu, sigma):
+  '''
+  Draws the results of a stock price evolution under a Geometric Brownian Motion model
+  '''
+  clear_output(wait=True)
+  s_0 = 100
+  prices = gbm(n_scenarios=n_scenarios, mu=mu, sigma=sigma, s_0=s_0)
+  
+  ax=prices.plot(legend=False, 
+                   color='indianred',
+                   style=':',
+                   alpha=0.5,
+                   figsize=(12,5))
+  ax.axhline(y=s_0, ls=':', color='black')
+  ax.plot(0, s_0, marker='o', color='darkred', alpha=0.2)  
+  plt.show()
+  
+
 import subprocess
 import sys
 
@@ -791,7 +812,7 @@ import plotly.graph_objs as go
 import plotly.express as px
 import dash_bootstrap_components as dbc
 
-def show_gbm(n_scenarios, mu, sigma):
+def show_gbm_dash(n_scenarios, mu, sigma):
     """
     Creates and runs a Dash application to visualize the simulation of stock price evolution
     under a Geometric Brownian Motion model.
@@ -826,7 +847,7 @@ def show_gbm(n_scenarios, mu, sigma):
     )
     def update_graph(n_scenarios, mu, sigma):
         s_0 = 100
-        prices = rk.gbm(n_scenarios=n_scenarios, mu=mu, sigma=sigma, s_0=s_0)
+        prices = gbm(n_scenarios=n_scenarios, mu=mu, sigma=sigma, s_0=s_0)
         df = pd.DataFrame(prices)
 
         # Create a line chart
