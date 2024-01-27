@@ -39,8 +39,14 @@ This script is a comprehensive suite of custom functions for portfolio optimizat
 
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy.stats import norm
-from scipy.optimize import minimize 
+from scipy.optimize import minimize
+import dash
+import dash_core_components as dcc
+import dash_html_components as html
+from dash.dependencies import Input, Output
+import plotly.express as px 
 
 def drawdown(return_series: pd.Series):
     """
@@ -766,5 +772,93 @@ def gbm(n_years=10, n_scenarios=1000, mu=0.07, sigma=0.15, steps_per_year=12, s_
     
     # Return the DataFrame of simulated prices
     return prices
+
+
+import subprocess
+import sys
+
+def install_packages():
+    """Installs packages."""
+    packages = ['dash', 'dash_bootstrap_components']  # Add any other packages you need
+    for package in packages:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+        
     
-    
+import dash
+from dash import dcc, html
+from dash.dependencies import Input, Output
+import plotly.graph_objs as go
+import plotly.express as px
+import dash_bootstrap_components as dbc
+
+def show_gbm(n_scenarios, mu, sigma):
+    """
+    Creates and runs a Dash application to visualize the simulation of stock price evolution
+    under a Geometric Brownian Motion model.
+
+    Parameters:
+    - n_scenarios: The number of scenarios to simulate.
+    - mu: The annualized expected return of the stock.
+    - sigma: The annualized volatility of the stock returns.
+    """
+    # stylesheet with the .dbc class from dash-bootstrap-templates library
+    dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.min.css"
+
+    # Create a new Dash application
+    app = dash.Dash(__name__, external_stylesheets=[dbc.themes.MINTY, dbc_css])
+
+    # Define the layout of the application
+    app.layout = html.Div([
+        html.Label("Select Number of Scenarios", htmlFor="n_scenarios"),
+        dcc.Slider(id='n_scenarios', min=0, max=n_scenarios, step=1, value=n_scenarios, marks=None, tooltip={"placement": "bottom", "always_visible": True}),
+        html.Label("Select Avg Return", htmlFor="mu"),
+        dcc.Slider(id='mu', min=0, max=0.2, step=0.01, value=mu, marks=None, tooltip={"placement": "bottom", "always_visible": True}),
+        html.Label("Select Volatility", htmlFor="sigma"),
+        dcc.Slider(id='sigma', min=0, max=0.3, step=0.01, value=sigma, marks=None, tooltip={"placement": "bottom", "always_visible": True}),
+        dcc.Graph(id='graph')
+    ])
+
+
+    # Define the callback function that updates the graph
+    @app.callback(
+        Output('graph', 'figure'),
+        [Input('n_scenarios', 'value'), Input('mu', 'value'), Input('sigma', 'value')]
+    )
+    def update_graph(n_scenarios, mu, sigma):
+        s_0 = 100
+        prices = rk.gbm(n_scenarios=n_scenarios, mu=mu, sigma=sigma, s_0=s_0)
+        df = pd.DataFrame(prices)
+
+        # Create a line chart
+        fig = px.line(df, y=df.columns, x=df.index, title='Geometric Brownian Motion')
+
+        # Update line properties for all traces
+        fig.update_traces(line=dict(color='#cd5c5c', dash='dot', width=0.9))
+
+        # Update x-axis and y-axis titles
+        fig.update_xaxes(title_text='Periods')
+        fig.update_yaxes(title_text='Price')
+
+        # Add a horizontal line representing the initial stock price
+        fig.add_shape(
+            type='line',
+            x0=0, x1=1, xref='paper',
+            y0=s_0, y1=s_0, yref='y',
+            line=dict(color='Black', dash='dot')
+        )
+
+        # Add a marker for the initial stock price
+        fig.add_trace(go.Scatter(
+            x=[0],
+            y=[s_0],
+            mode='markers',
+            marker=dict(color='darkred', size=10, opacity=0.2)
+        ))
+
+        # Hide the legend
+        fig.update_layout(showlegend=False, plot_bgcolor='rgba(211,211,211,0.1)')
+
+        return fig
+
+    # Start the application
+    app.run_server(debug=True)
