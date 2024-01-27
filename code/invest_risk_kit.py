@@ -739,39 +739,27 @@ def summary_stats(r,riskfree_rate=0.03):
     })
     
     
-def gbm(n_years=10, n_scenarios=1000, mu=0.07, sigma=0.15, steps_per_year=12, s_0=100.0):
+def gbm(n_years = 10, n_scenarios=1000, mu=0.07, sigma=0.15, steps_per_year=12, s_0=100.0, prices=True):
     """
-    Simulates the evolution of stock prices using a Geometric Brownian Motion (GBM) model over a specified number of years and scenarios.
-    The GBM is a stochastic process that models the logarithmic returns of a stock price as normally distributed.
-
-    Parameters:
-    - n_years: The number of years over which to simulate the stock price path.
-    - n_scenarios: The number of different paths (scenarios) to simulate.
-    - mu: The annualized expected return of the stock.
-    - sigma: The annualized volatility, or standard deviation, of the stock returns.
-    - steps_per_year: The number of times the stock price is sampled per year.
-    - s_0: The initial stock price.
-
-    Returns:
-    - A DataFrame containing the simulated price paths for the stock.
+    Evolution of Geometric Brownian Motion trajectories, such as for Stock Prices through Monte Carlo
+    :param n_years:  The number of years to generate data for
+    :param n_paths: The number of scenarios/trajectories
+    :param mu: Annualized Drift, e.g. Market Return
+    :param sigma: Annualized Volatility
+    :param steps_per_year: granularity of the simulation
+    :param s_0: initial value
+    :return: a numpy array of n_paths columns and n_years*steps_per_year rows
     """
-    
-    # Calculate the time step size based on the number of steps per year
+    # Derive per-step Model Parameters from User Specifications
     dt = 1/steps_per_year
-    
-    # Calculate the total number of steps for all years
-    n_steps = int(n_years*steps_per_year)
-    
-    # Simulate the percentage changes in price, which follow a normal distribution
-    # The 'loc' parameter is the mean of the normal distribution, adjusted for the expected return over each time step
-    # The 'scale' parameter is the standard deviation, adjusted for the square root of each time step
-    rets_plus_1 = np.random.normal(loc=(1+mu*dt), scale=(sigma*np.sqrt(dt)), size=(n_steps, n_scenarios))
-    
-    # Calculate the price paths: start with the initial price and cumulatively multiply by the percentage changes
-    prices = s_0*pd.DataFrame(rets_plus_1).cumprod()
-    
-    # Return the DataFrame of simulated prices
-    return prices
+    n_steps = int(n_years*steps_per_year) + 1
+    # the standard way ...
+    # rets_plus_1 = np.random.normal(loc=mu*dt+1, scale=sigma*np.sqrt(dt), size=(n_steps, n_scenarios))
+    # without discretization error ...
+    rets_plus_1 = np.random.normal(loc=(1+mu)**dt, scale=(sigma*np.sqrt(dt)), size=(n_steps, n_scenarios))
+    rets_plus_1[0] = 1
+    ret_val = s_0*pd.DataFrame(rets_plus_1).cumprod() if prices else rets_plus_1-1
+    return ret_val
 
 
 import matplotlib.pyplot as plt
