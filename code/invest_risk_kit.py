@@ -794,7 +794,7 @@ def install_packages():
         
     
 
-
+'''
 def show_gbm_dash(n_scenarios, mu, sigma):
     """
     Creates and runs a Dash application to visualize the simulation of stock price evolution
@@ -866,7 +866,7 @@ def show_gbm_dash(n_scenarios, mu, sigma):
 
     # Start the application
     app.run_server(debug=True)
-
+'''
 
 def discount(t, r):
     """
