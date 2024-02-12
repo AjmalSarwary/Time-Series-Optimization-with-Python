@@ -781,7 +781,8 @@ def show_gbm(n_scenarios, mu, sigma):
   ax.axhline(y=s_0, ls=':', color='black')
   ax.plot(0, s_0, marker='o', color='darkred', alpha=0.2)  
   plt.show()
-  
+
+'''
 
 import subprocess
 import sys
@@ -793,7 +794,7 @@ def install_packages():
         subprocess.check_call([sys.executable, "-m", "pip", "install", package])
         
     
-
+'''
 '''
 def show_gbm_dash(n_scenarios, mu, sigma):
     """
