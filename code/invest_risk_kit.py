@@ -793,12 +793,7 @@ def install_packages():
         subprocess.check_call([sys.executable, "-m", "pip", "install", package])
         
     
-import dash
-from dash import dcc, html
-from dash.dependencies import Input, Output
-import plotly.graph_objs as go
-import plotly.express as px
-import dash_bootstrap_components as dbc
+
 
 def show_gbm_dash(n_scenarios, mu, sigma):
     """
