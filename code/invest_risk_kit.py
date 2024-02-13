@@ -209,6 +209,13 @@ def cvar_historic(r, level=5):
         raise TypeError("Expected r to be Series or DataFrame")
 
 
+def compound(r):
+    """
+    returns the result of compounding the set of returns in r
+    """
+    return np.expm1(np.log1p(r).sum())
+    
+    
 def annualize_rets(r, periods_per_year):
     """
     Annualizes a set of returns.
@@ -892,7 +899,7 @@ def funding_ratio(assets, liabilities, r):
     """
     Computes the funding ratio of a series of liabilities, based on an interest rate and current value of assets
     """
-    return pv(assets, r)/pv(liabilities, r)
+    return assets/pv(liabilities, r)
     
     
 def inst_to_ann(r):
