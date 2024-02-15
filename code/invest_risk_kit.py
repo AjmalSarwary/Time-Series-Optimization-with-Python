@@ -1140,6 +1140,14 @@ def style_analysis(dependent_variable, explanatory_variables):
     weights = pd.Series(solution.x, index=explanatory_variables.columns)
     return weights
 
+
+def tracking_error(r_a, r_b):
+    """
+    Returns the Tracking Error between the two return series
+    """
+    return np.sqrt(((r_a - r_b)**2).sum())
+    
+    
 def portfolio_tracking_error(weights, ref_r, bb_r):
     """
     returns the tracking error between the reference returns
