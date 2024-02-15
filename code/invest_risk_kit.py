@@ -1139,7 +1139,6 @@ def style_analysis(dependent_variable, explanatory_variables):
                        bounds=bounds)
     weights = pd.Series(solution.x, index=explanatory_variables.columns)
     return weights
-The Objective function is a very simple one-liner
 
 def portfolio_tracking_error(weights, ref_r, bb_r):
     """
